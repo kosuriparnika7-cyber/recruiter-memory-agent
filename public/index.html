@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Recall — Candidate Intelligence</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Inter, Arial, sans-serif;
+            background: #0b0d0f;
+            color: #f4f4f2;
+            min-height: 100vh;
+        }
+
+        .app {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            width: 245px;
+            border-right: 1px solid #222528;
+            padding: 28px 18px;
+            background: #0d0f11;
+        }
+
+        .logo {
+            padding: 0 12px 35px;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+
+        .logo span {
+            color: #8cffc1;
+        }
+
+        .nav-label {
+            color: #62676b;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            padding: 0 12px;
+            margin-bottom: 10px;
+        }
+
+        .nav-item {
+            padding: 11px 12px;
+            border-radius: 8px;
+            color: #92979b;
+            font-size: 14px;
+            margin-bottom: 3px;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+
+        .nav-item:hover {
+            background: #151819;
+            color: #ffffff;
+        }
+
+        .nav-item.active {
+            background: #171a1d;
+            color: #ffffff;
+        }
+
+        .candidate-list {
+            margin-top: 28px;
+        }
+
+        .candidate {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            color: #9da2a5;
+            font-size: 13px;
+            transition: .2s ease;
+        }
+
+        .candidate:hover {
+            background: #151819;
+            color: #ffffff;
+        }
+
+        .candidate.active {
+            background: #151819;
+            color: #fff;
+        }
+
+        .avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #292d30;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            color: #ddd;
+        }
+
+        .candidate.active .avatar {
+            background: #8cffc1;
+            color: #07100b;
+        }
+
+        /* MAIN */
+
+        .main {
+            flex: 1;
+            padding: 32px 42px;
+            max-width: 1400px;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 42px;
+        }
+
+        .breadcrumb {
+            color: #686e72;
+            font-size: 12px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #7e8589;
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #8cffc1;
+            box-shadow: 0 0 10px rgba(140,255,193,.5);
+        }
+
+        /* PROFILE HEADER */
+
+        .profile {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 38px;
+        }
+
+        .profile-left {
+            display: flex;
+            gap: 18px;
+            align-items: center;
+        }
+
+        .big-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: #24282b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 600;
+            color: #ddd;
+        }
+
+        .profile h1 {
+            font-size: 30px;
+            letter-spacing: -1px;
+            margin-bottom: 6px;
+        }
+
+        .profile-subtitle {
+            color: #777e82;
+            font-size: 13px;
+        }
+
+        .profile-tag {
+            border: 1px solid #303438;
+            padding: 7px 11px;
+            border-radius: 20px;
+            color: #a4aaaE;
+            font-size: 11px;
+        }
+
+        /* GRID */
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.2fr .8fr;
+            gap: 18px;
+        }
+
+        .card {
+            border: 1px solid #24282b;
+            background: #101315;
+            border-radius: 13px;
+            padding: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 22px;
+        }
+
+        .card-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1.3px;
+            color: #777e82;
+        }
+
+        .memory-live {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 10px;
+            color: #8cffc1;
+        }
+
+        /* MEMORY */
+
+        .memory-main {
+            font-size: 17px;
+            line-height: 1.55;
+            color: #e8e9e7;
+            max-width: 720px;
+            margin-bottom: 24px;
+        }
+
+        .memory-main span {
+            color: #8cffc1;
+        }
+
+        .memory-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 9px;
+        }
+
+        .memory-item {
+            border: 1px solid #25292c;
+            border-radius: 9px;
+            padding: 13px;
+            background: #0d1011;
+        }
+
+        .memory-item-label {
+            color: #62686c;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 7px;
+        }
+
+        .memory-item-value {
+            font-size: 13px;
+            color: #ddd;
+        }
+
+        /* TIMELINE */
+
+        .timeline {
+            margin-top: 18px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 13px;
+            margin-bottom: 19px;
+        }
+
+        .timeline-line {
+            width: 1px;
+            background: #292d30;
+            position: relative;
+        }
+
+        .timeline-line::before {
+            content: "";
+            position: absolute;
+            top: 4px;
+            left: -3px;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #555b5f;
+        }
+
+        .timeline-content small {
+            color: #5f6569;
+            font-size: 10px;
+        }
+
+        .timeline-content p {
+            margin-top: 5px;
+            color: #b8bdc0;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        /* OPPORTUNITY */
+
+        .opportunity {
+            border-color: #303735;
+        }
+
+        .role-title {
+            font-size: 20px;
+            margin-bottom: 7px;
+        }
+
+        .company {
+            color: #72787c;
+            font-size: 12px;
+            margin-bottom: 22px;
+        }
+
+        .role-details {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 7px;
+            margin-bottom: 24px;
+        }
+
+        .role-pill {
+            border: 1px solid #2b3033;
+            border-radius: 20px;
+            padding: 7px 10px;
+            font-size: 11px;
+            color: #b6bbbd;
+        }
+
+        .generate-btn {
+            width: 100%;
+            border: none;
+            border-radius: 8px;
+            padding: 13px;
+            background: #8cffc1;
+            color: #07100b;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .2s ease;
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(140,255,193,.12);
+        }
+
+        .remember-btn {
+            width: 100%;
+            border: 1px solid #303735;
+            border-radius: 8px;
+            padding: 12px 13px;
+            background: transparent;
+            color: #b8bdc0;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 9px;
+            transition: .2s ease;
+        }
+
+        .remember-btn:hover {
+            border-color: #8cffc1;
+            color: #8cffc1;
+        }
+
+        /* RESULT */
+
+        .result {
+            grid-column: 1 / -1;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: appear .35s ease;
+        }
+
+        @keyframes appear {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-intro {
+            color: #aeb3b5;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 22px;
+        }
+
+        .alignment {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 9px;
+        }
+
+        .alignment-item {
+            border: 1px solid #29302d;
+            padding: 14px;
+            border-radius: 9px;
+        }
+
+        .check {
+            color: #8cffc1;
+            font-size: 12px;
+            margin-bottom: 8px;
+        }
+
+        .alignment-item p {
+            color: #c4c8c9;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .question {
+            margin-top: 20px;
+            border-left: 2px solid #555b5f;
+            padding-left: 14px;
+        }
+
+        .question strong {
+            display: block;
+            font-size: 11px;
+            color: #d7dadb;
+            margin-bottom: 5px;
+        }
+
+        .question p {
+            font-size: 12px;
+            color: #7f8588;
+        }
+
+
+        .extraction {
+            grid-column: 1 / -1;
+        }
+
+        .extraction-copy {
+            color: #aeb3b5;
+            font-size: 13px;
+            line-height: 1.6;
+            margin-bottom: 18px;
+        }
+
+        .extraction-copy strong {
+            color: #e5e7e6;
+        }
+
+        .extraction-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 9px;
+        }
+
+        .extraction-item {
+            border: 1px solid #25292c;
+            border-radius: 9px;
+            padding: 12px;
+            background: #0d1011;
+            min-height: 65px;
+        }
+
+        .extraction-item span {
+            display: block;
+            color: #62686c;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 7px;
+        }
+
+        .extraction-item b {
+            color: #d9dddc;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .extraction.saved {
+            border-color: #334b3e;
+        }
+
+        .brief-text {
+            white-space: pre-wrap;
+            color: #d7dadb;
+            font-size: 13px;
+            line-height: 1.65;
+            background: #0d1011;
+            border: 1px solid #25292c;
+            border-radius: 9px;
+            padding: 16px;
+            margin-bottom: 18px;
+        }
+
+        .result-generated {
+            display: none;
+        }
+
+        .result-generated.show {
+            display: block;
+        }
+
+        @media (max-width: 900px) {
+            .extraction-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 550px) {
+            .extraction-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* RESPONSIVE */
+
+        @media (max-width: 900px) {
+            .sidebar {
+                display: none;
+            }
+
+            .main {
+                padding: 24px;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .alignment {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 550px) {
+            .memory-grid,
+            .alignment {
+                grid-template-columns: 1fr;
+            }
+
+            .profile {
+                flex-direction: column;
+                gap: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="app">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+            recall<span>.</span>
+        </div>
+
+        <div class="nav-label">Workspace</div>
+
+        <div class="nav-item active" data-section="candidates">
+            Candidates
+        </div>
+
+        <div class="nav-item" data-section="opportunities">
+            Opportunities
+        </div>
+
+        <div class="nav-item" data-section="conversations">
+            Conversations
+        </div>
+
+        <div class="candidate-list">
+
+            <div class="nav-label">
+                Recent candidates
+            </div>
+
+            <div class="candidate active" data-candidate="rashi">
+                <div class="avatar">RS</div>
+                Rashi Sharma
+            </div>
+
+            <div class="candidate" data-candidate="arjun">
+                <div class="avatar">AK</div>
+                Arjun Kumar
+            </div>
+
+            <div class="candidate" data-candidate="meera">
+                <div class="avatar">MP</div>
+                Meera Patel
+            </div>
+
+        </div>
+
+    </aside>
+
+
+    <!-- MAIN -->
+
+    <main class="main">
+
+        <div class="topbar">
+
+            <div class="breadcrumb">
+                Candidates / Rashi Sharma
+            </div>
+
+            <div class="status">
+                <div class="status-dot"></div>
+                Memory system active
+            </div>
+
+        </div>
+
+
+        <!-- PROFILE -->
+
+        <section class="profile">
+
+            <div class="profile-left">
+
+                <div class="big-avatar">
+                    RS
+                </div>
+
+                <div>
+                    <h1>Rashi Sharma</h1>
+                    <div class="profile-subtitle">
+                        Software Engineer · Backend · Hyderabad
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="profile-tag">
+                Last conversation · 3 weeks ago
+            </div>
+
+        </section>
+
+
+        <div class="grid">
+
+
+            <!-- MEMORY CARD -->
+
+            <section class="card">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+                        Candidate memory
+                    </div>
+
+                    <div class="memory-live">
+                        ● REMEMBERED
+                    </div>
+
+                </div>
+
+                <div class="memory-main">
+
+                    You spoke with Rashi previously. She is looking for
+                    <span>backend opportunities in Hyderabad</span>
+                    and values predictable working hours and work-life balance.
+
+                </div>
+
+
+                <div class="memory-grid">
+
+                    <div class="memory-item">
+
+                        <div class="memory-item-label">
+                            Compensation
+                        </div>
+
+                        <div class="memory-item-value">
+                            ₹13–15 LPA
+                        </div>
+
+                    </div>
+
+
+                    <div class="memory-item">
+
+                        <div class="memory-item-label">
+                            Work model
+                        </div>
+
+                        <div class="memory-item-value">
+                            Hybrid · Hyderabad
+                        </div>
+
+                    </div>
+
+
+                    <div class="memory-item">
+
+                        <div class="memory-item-label">
+                            Career goal
+                        </div>
+
+                        <div class="memory-item-value">
+                            Backend / Node.js
+                        </div>
+
+                    </div>
+
+
+                    <div class="memory-item">
+
+                        <div class="memory-item-label">
+                            Important to her
+                        </div>
+
+                        <div class="memory-item-value">
+                            Reasonable working hours
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- OPPORTUNITY CARD -->
+
+            <section class="card opportunity">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+                        New opportunity
+                    </div>
+
+                    <div class="profile-tag">
+                        NEW
+                    </div>
+
+                </div>
+
+                <div class="role-title">
+                    Backend Engineer
+                </div>
+
+                <div class="company">
+                    Hyderabad · Product Engineering
+                </div>
+
+                <div class="role-details">
+
+                    <div class="role-pill">
+                        ₹14 LPA
+                    </div>
+
+                    <div class="role-pill">
+                        Hybrid
+                    </div>
+
+                    <div class="role-pill">
+                        Node.js
+                    </div>
+
+                    <div class="role-pill">
+                        Predictable hours
+                    </div>
+
+                </div>
+
+                <button
+                    class="remember-btn"
+                    onclick="rememberConversation()"
+                >
+                    Remember important details
+                </button>
+
+                <button
+                    class="generate-btn"
+                    onclick="generateBrief()"
+                >
+                    Recall candidate context →
+                </button>
+
+            </section>
+
+
+            <!-- EXTRACTION STATUS -->
+
+            <section class="card extraction" id="extraction">
+
+                <div class="card-header">
+                    <div class="card-title">Conversation analysis</div>
+                    <div class="memory-live" id="extractionStatus">○ MEMORY READY</div>
+                </div>
+
+                <div class="extraction-copy" id="extractionCopy">
+                    Click <strong>Remember important details</strong> to turn a messy recruiter conversation into reusable candidate memory.
+                </div>
+
+                <div class="extraction-grid" id="extractionGrid">
+                    <div class="extraction-item"><span>Career goal</span><b>—</b></div>
+                    <div class="extraction-item"><span>Location</span><b>—</b></div>
+                    <div class="extraction-item"><span>Compensation</span><b>—</b></div>
+                    <div class="extraction-item"><span>Work model</span><b>—</b></div>
+                    <div class="extraction-item"><span>Work style</span><b>—</b></div>
+                    <div class="extraction-item"><span>Constraint</span><b>—</b></div>
+                </div>
+
+            </section>
+
+
+            <!-- TIMELINE -->
+
+            <section class="card">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+                        Relationship timeline
+                    </div>
+
+                </div>
+
+                <div class="timeline">
+
+                    <div class="timeline-item">
+
+                        <div class="timeline-line"></div>
+
+                        <div class="timeline-content">
+
+                            <small>3 WEEKS AGO</small>
+
+                            <p>
+                                Initial recruiter conversation.
+                                Rashi shared her role preferences,
+                                salary expectations and work-style priorities.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="timeline-item">
+
+                        <div class="timeline-line"></div>
+
+                        <div class="timeline-content">
+
+                            <small>MEMORY CREATED</small>
+
+                            <p>
+                                Important candidate preferences were
+                                retained for future conversations.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- RESULT -->
+
+            <section class="card result" id="result">
+
+                <div class="card-header">
+
+                    <div class="card-title">
+                        Recruiter brief
+                    </div>
+
+                    <div class="memory-live">
+                        ● MEMORY USED
+                    </div>
+
+                </div>
+
+                <div class="result-intro">
+
+                    Rashi previously told you she prefers hybrid work
+                    in Hyderabad, targets ₹13–15 LPA, wants more backend
+                    and Node.js responsibility, and values predictable
+                    working hours.
+
+                </div>
+
+                <div class="brief-text result-generated" id="generatedBrief"></div>
+
+                <div class="alignment">
+
+                    <div class="alignment-item">
+
+                        <div class="check">
+                            ✓ LOCATION
+                        </div>
+
+                        <p>
+                            Hyderabad matches her stated preference.
+                        </p>
+
+                    </div>
+
+
+                    <div class="alignment-item">
+
+                        <div class="check">
+                            ✓ COMPENSATION
+                        </div>
+
+                        <p>
+                            ₹14 LPA falls within her stated target range.
+                        </p>
+
+                    </div>
+
+
+                    <div class="alignment-item">
+
+                        <div class="check">
+                            ✓ CAREER GOAL
+                        </div>
+
+                        <p>
+                            Node.js backend work aligns with her goal.
+                        </p>
+
+                    </div>
+
+
+                    <div class="alignment-item">
+
+                        <div class="check">
+                            ✓ WORK STYLE
+                        </div>
+
+                        <p>
+                            Hybrid and predictable hours match her preferences.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="question">
+
+                    <strong>
+                        One thing to verify
+                    </strong>
+
+                    <p>
+                        Confirm the team's actual working-hour expectations
+                        and communication culture before reaching out.
+                    </p>
+
+                </div>
+
+            </section>
+
+        </div>
+
+    </main>
+
+</div>
+
+
+<script>
+
+
+function setActiveNav(section) {
+    document.querySelectorAll(".nav-item").forEach(item => {
+        item.classList.toggle("active", item.dataset.section === section);
+    });
+}
+
+function clearCandidateActive() {
+    document.querySelectorAll(".candidate").forEach(item => {
+        item.classList.remove("active");
+    });
+}
+
+function showSection(section) {
+    setActiveNav(section);
+    clearCandidateActive();
+
+    if (section === "candidates") {
+        document.querySelector('[data-candidate="rashi"]').classList.add("active");
+        document.querySelector(".breadcrumb").textContent = "Candidates / Rashi Sharma";
+        document.querySelector(".profile").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    if (section === "opportunities") {
+        document.querySelector(".breadcrumb").textContent = "Opportunities / Backend Engineer";
+        document.querySelector(".opportunity").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    if (section === "conversations") {
+        document.querySelector(".breadcrumb").textContent = "Conversations / Rashi Sharma";
+        document.querySelector(".timeline").scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+}
+
+document.querySelectorAll(".nav-item").forEach(item => {
+    item.addEventListener("click", () => {
+        showSection(item.dataset.section);
+    });
+});
+
+document.querySelectorAll(".candidate").forEach(item => {
+    item.addEventListener("click", () => {
+        const candidate = item.dataset.candidate;
+
+        if (candidate === "rashi") {
+            setActiveNav("candidates");
+            clearCandidateActive();
+            item.classList.add("active");
+            document.querySelector(".breadcrumb").textContent = "Candidates / Rashi Sharma";
+            document.querySelector(".profile").scrollIntoView({ behavior: "smooth", block: "start" });
+            return;
+        }
+
+        clearCandidateActive();
+        item.classList.add("active");
+        setActiveNav("candidates");
+        document.querySelector(".breadcrumb").textContent =
+            candidate === "arjun"
+                ? "Candidates / Arjun Kumar"
+                : "Candidates / Meera Patel";
+
+        alert(
+            candidate === "arjun"
+                ? "Arjun Kumar — Prototype candidate. Candidate memory coming soon."
+                : "Meera Patel — Prototype candidate. Candidate memory coming soon."
+        );
+
+        // Return focus to the currently implemented Rashi profile.
+        document.querySelector('[data-candidate="rashi"]').classList.add("active");
+        item.classList.remove("active");
+        document.querySelector(".breadcrumb").textContent = "Candidates / Rashi Sharma";
+    });
+});
+
+async function rememberConversation() {
+
+    const button = document.querySelector(".remember-btn");
+    const extraction = document.getElementById("extraction");
+    const status = document.getElementById("extractionStatus");
+    const copy = document.getElementById("extractionCopy");
+    const items = document.querySelectorAll("#extractionGrid .extraction-item b");
+
+    button.innerText = "Remembering conversation...";
+    button.disabled = true;
+
+    try {
+        const response = await fetch("/api/remember", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error);
+
+        const facts = [
+            "Backend / Node.js",
+            "Hyderabad · Hybrid",
+            "₹13–15 LPA",
+            "Hybrid",
+            "Predictable hours",
+            "Avoid frequent late-night work"
+        ];
+
+        items.forEach((item, i) => item.textContent = facts[i]);
+        status.textContent = "● MEMORY SAVED";
+        copy.innerHTML = "<strong>Conversation analyzed.</strong> Long-term candidate details were extracted and stored in Hindsight.";
+        extraction.classList.add("saved");
+        button.innerText = "Memory saved ✓";
+
+        console.log("🧠 Memory saved:", data.memory);
+
+    } catch (error) {
+        console.error(error);
+        button.innerText = "Something went wrong";
+    } finally {
+        button.disabled = false;
+    }
+}
+
+async function generateBrief() {
+
+    const button = document.querySelector(".generate-btn");
+    const result = document.getElementById("result");
+    const generated = document.getElementById("generatedBrief");
+
+    button.innerText = "Recalling candidate memory...";
+    button.disabled = true;
+
+    try {
+        const response = await fetch("/api/recruiter-brief", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" }
+        });
+
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error);
+
+        generated.textContent = data.brief;
+        generated.classList.add("show");
+        result.classList.add("show");
+
+        result.scrollIntoView({ behavior: "smooth", block: "center" });
+        button.innerText = "Memory recalled ✓";
+
+        console.log("🧠 Recruiter brief:", data.brief);
+
+    } catch (error) {
+        console.error(error);
+        button.innerText = "Something went wrong";
+    } finally {
+        button.disabled = false;
+    }
+}
+</script>
+
+</body>
+</html>
