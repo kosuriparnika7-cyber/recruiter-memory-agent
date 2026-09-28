@@ -508,6 +508,11 @@
             border-color: #334b3e;
         }
 
+        .memory-evidence {
+            white-space: pre-wrap;
+            color: #8cffc1 !important;
+        }
+
         .brief-text {
             white-space: pre-wrap;
             color: #d7dadb;
@@ -526,6 +531,71 @@
 
         .result-generated.show {
             display: block;
+        }
+
+        .demo-entry {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 16px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: #8cffc1;
+            font: inherit;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .demo-entry:hover { color: #b2ffd1; }
+
+        .demo-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            background: rgba(4, 6, 7, .78);
+            backdrop-filter: blur(8px);
+        }
+        .demo-overlay.open { display: flex; }
+        .demo-dialog {
+            width: min(680px, 100%);
+            max-height: min(760px, calc(100vh - 48px));
+            overflow: auto;
+            border: 1px solid #303638;
+            border-radius: 16px;
+            background: #101315;
+            box-shadow: 0 28px 90px rgba(0,0,0,.48);
+            padding: 26px;
+        }
+        .demo-topline { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; }
+        .demo-eyebrow { color: #8cffc1; font-size: 10px; letter-spacing: 1.4px; text-transform: uppercase; margin-bottom: 8px; }
+        .demo-dialog h2 { font-size: 23px; letter-spacing: -.6px; margin-bottom: 6px; }
+        .demo-subtitle { color: #777e81; font-size: 12px; line-height: 1.5; }
+        .demo-close { flex: 0 0 auto; width: 32px; height: 32px; border: 1px solid #303638; border-radius: 9px; background: #15191b; color: #aeb4b5; font-size: 19px; cursor: pointer; }
+        .call-selector { display: flex; gap: 6px; margin: 24px 0 18px; padding: 4px; border: 1px solid #252a2c; border-radius: 10px; background: #0c0f10; }
+        .call-selector button { flex: 1; border: 0; border-radius: 7px; background: transparent; color: #7f878a; padding: 9px 5px; font-size: 11px; cursor: pointer; }
+        .call-selector button.active { background: #19211c; color: #a4f2c1; }
+        .demo-prompt { color: #c4c9c8; font-size: 12px; line-height: 1.5; margin: 0 0 13px; }
+        .comparison-tabs { display: flex; gap: 18px; border-bottom: 1px solid #25292c; }
+        .comparison-tabs button { border: 0; border-bottom: 2px solid transparent; background: transparent; color: #747b7e; padding: 10px 1px; margin-bottom: -1px; font-size: 10px; letter-spacing: .75px; cursor: pointer; }
+        .comparison-tabs button[aria-selected="true"] { border-color: #8cffc1; color: #8cffc1; }
+        .comparison-view { min-height: 174px; padding: 20px 2px 10px; }
+        .comparison-answer { color: #e2e5e3; font-size: 15px; line-height: 1.7; }
+        .memories-label { color: #747b7e; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 9px; }
+        .memory-chips { display: flex; flex-wrap: wrap; gap: 7px; }
+        .memory-chip { max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; border: 1px solid #294335; border-radius: 20px; padding: 6px 10px; background: #121b16; color: #a4f2c1; font-size: 11px; }
+        .comparison-status { min-height: 16px; color: #7f878a; font-size: 10px; margin-top: 12px; }
+        body.demo-open { overflow: hidden; }
+
+        @media (max-width: 550px) {
+            .demo-overlay { padding: 12px; }
+            .demo-dialog { max-height: calc(100vh - 24px); padding: 20px; }
+            .demo-dialog h2 { font-size: 20px; }
+            .comparison-answer { font-size: 14px; }
         }
 
         @media (max-width: 900px) {
@@ -683,8 +753,8 @@
                         Candidate memory
                     </div>
 
-                    <div class="memory-live">
-                        ● REMEMBERED
+                    <div class="memory-live" id="candidateMemoryStatus">
+                        ○ NOT YET REPLAYED
                     </div>
 
                 </div>
@@ -814,6 +884,8 @@
                     Recall candidate context →
                 </button>
 
+                <button type="button" class="demo-entry" onclick="openMemoryDemo()">See how Recall remembers <span aria-hidden="true">→</span></button>
+
             </section>
 
 
@@ -830,14 +902,7 @@
                     Click <strong>Remember important details</strong> to turn a messy recruiter conversation into reusable candidate memory.
                 </div>
 
-                <div class="extraction-grid" id="extractionGrid">
-                    <div class="extraction-item"><span>Career goal</span><b>—</b></div>
-                    <div class="extraction-item"><span>Location</span><b>—</b></div>
-                    <div class="extraction-item"><span>Compensation</span><b>—</b></div>
-                    <div class="extraction-item"><span>Work model</span><b>—</b></div>
-                    <div class="extraction-item"><span>Work style</span><b>—</b></div>
-                    <div class="extraction-item"><span>Constraint</span><b>—</b></div>
-                </div>
+                <div class="brief-text" id="storedMemory">Waiting for Groq to extract the first conversation and Hindsight to retain it.</div>
 
             </section>
 
@@ -854,44 +919,22 @@
 
                 </div>
 
+                <div class="extraction-copy">Illustrative dates; each stage runs live against Hindsight during the demo.</div>
                 <div class="timeline">
-
-                    <div class="timeline-item">
-
-                        <div class="timeline-line"></div>
-
-                        <div class="timeline-content">
-
-                            <small>3 WEEKS AGO</small>
-
-                            <p>
-                                Initial recruiter conversation.
-                                Rashi shared her role preferences,
-                                salary expectations and work-style priorities.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="timeline-item">
-
-                        <div class="timeline-line"></div>
-
-                        <div class="timeline-content">
-
-                            <small>MEMORY CREATED</small>
-
-                            <p>
-                                Important candidate preferences were
-                                retained for future conversations.
-                            </p>
-
-                        </div>
-
-                    </div>
-
+                    <div class="timeline-item"><div class="timeline-line"></div><div class="timeline-content">
+                        <small>3 WEEKS AGO · INITIAL CONVERSATION</small>
+                        <p id="timelineInitial">Waiting to extract preferences with Groq and retain them in Hindsight.</p>
+                    </div></div>
+                    <div class="timeline-item"><div class="timeline-line"></div><div class="timeline-content">
+                        <small>1 WEEK AGO · PERSONALIZED FOLLOW-UP</small>
+                        <p id="timelineFollowUp">Waiting for the real follow-up recall.</p>
+                        <p class="memory-evidence" id="followUpMemory"></p>
+                        <p class="memory-evidence" id="followUpQuestion"></p>
+                    </div></div>
+                    <div class="timeline-item"><div class="timeline-line"></div><div class="timeline-content">
+                        <small>TODAY · NEW OPPORTUNITY</small>
+                        <p id="timelineToday">Waiting for today’s opportunity recall.</p>
+                    </div></div>
                 </div>
 
             </section>
@@ -900,99 +943,14 @@
             <!-- RESULT -->
 
             <section class="card result" id="result">
-
                 <div class="card-header">
-
-                    <div class="card-title">
-                        Recruiter brief
-                    </div>
-
-                    <div class="memory-live">
-                        ● MEMORY USED
-                    </div>
-
+                    <div class="card-title">Recruiter brief</div>
+                    <div class="memory-live" id="recallStatus">○ WAITING FOR HINDSIGHT RECALL</div>
                 </div>
-
-                <div class="result-intro">
-
-                    Rashi previously told you she prefers hybrid work
-                    in Hyderabad, targets ₹13–15 LPA, wants more backend
-                    and Node.js responsibility, and values predictable
-                    working hours.
-
-                </div>
-
-                <div class="brief-text result-generated" id="generatedBrief"></div>
-
-                <div class="alignment">
-
-                    <div class="alignment-item">
-
-                        <div class="check">
-                            ✓ LOCATION
-                        </div>
-
-                        <p>
-                            Hyderabad matches her stated preference.
-                        </p>
-
-                    </div>
-
-
-                    <div class="alignment-item">
-
-                        <div class="check">
-                            ✓ COMPENSATION
-                        </div>
-
-                        <p>
-                            ₹14 LPA falls within her stated target range.
-                        </p>
-
-                    </div>
-
-
-                    <div class="alignment-item">
-
-                        <div class="check">
-                            ✓ CAREER GOAL
-                        </div>
-
-                        <p>
-                            Node.js backend work aligns with her goal.
-                        </p>
-
-                    </div>
-
-
-                    <div class="alignment-item">
-
-                        <div class="check">
-                            ✓ WORK STYLE
-                        </div>
-
-                        <p>
-                            Hybrid and predictable hours match her preferences.
-                        </p>
-
-                    </div>
-
-                </div>
-
-
-                <div class="question">
-
-                    <strong>
-                        One thing to verify
-                    </strong>
-
-                    <p>
-                        Confirm the team's actual working-hour expectations
-                        and communication culture before reaching out.
-                    </p>
-
-                </div>
-
+                <div class="extraction-copy">Actual Hindsight memory returned for today’s opportunity</div>
+                <div class="brief-text" id="recalledMemory"></div>
+                <div class="extraction-copy">Actual Groq recruiter brief grounded in that recalled memory</div>
+                <div class="brief-text" id="generatedBrief"></div>
             </section>
 
         </div>
@@ -1001,9 +959,44 @@
 
 </div>
 
+<div class="demo-overlay" id="memoryDemo" aria-hidden="true">
+    <section class="demo-dialog" role="dialog" aria-modal="true" aria-labelledby="demoTitle">
+        <div class="demo-topline">
+            <div>
+                <div class="demo-eyebrow">Recall · Memory demo</div>
+                <h2 id="demoTitle">A better conversation, over time</h2>
+                <div class="demo-subtitle">Same candidate, question and Groq model. Hindsight is the only difference.</div>
+            </div>
+            <button type="button" class="demo-close" aria-label="Close memory demo" onclick="closeMemoryDemo()">×</button>
+        </div>
+        <div class="call-selector" role="group" aria-label="Choose conversation">
+            <button type="button" class="active" data-call="1" onclick="runComparison(1)">Call 1</button>
+            <button type="button" data-call="2" onclick="runComparison(2)">Call 2</button>
+            <button type="button" data-call="3" onclick="runComparison(3)">Call 3</button>
+        </div>
+        <p class="demo-prompt">“How should I introduce this Backend Engineer opportunity to Rashi?”</p>
+        <div class="comparison-tabs" role="tablist" aria-label="Memory comparison">
+            <button type="button" role="tab" id="tabWithoutMemory" aria-selected="true" onclick="selectComparisonTab('off')">WITHOUT MEMORY</button>
+            <button type="button" role="tab" id="tabWithMemory" aria-selected="false" onclick="selectComparisonTab('on')">WITH HINDSIGHT</button>
+        </div>
+        <div class="comparison-view" role="tabpanel">
+            <div class="comparison-answer" id="comparisonAnswer" aria-live="polite">Choose a call to see how the conversation changes.</div>
+            <div id="memoriesRecalled" hidden>
+                <div class="memories-label">Memories recalled</div>
+                <div class="memory-chips" id="memoryChips"></div>
+            </div>
+        </div>
+        <div class="comparison-status" id="comparisonStatus" aria-live="polite"></div>
+    </section>
+</div>
+
 
 <script>
 
+
+let comparisonResults = null;
+let activeComparisonTab = "off";
+let comparisonRequestId = 0;
 
 function setActiveNav(section) {
     document.querySelectorAll(".nav-item").forEach(item => {
@@ -1084,7 +1077,6 @@ async function rememberConversation() {
     const extraction = document.getElementById("extraction");
     const status = document.getElementById("extractionStatus");
     const copy = document.getElementById("extractionCopy");
-    const items = document.querySelectorAll("#extractionGrid .extraction-item b");
 
     button.innerText = "Remembering conversation...";
     button.disabled = true;
@@ -1098,22 +1090,25 @@ async function rememberConversation() {
         const data = await response.json();
         if (!data.success) throw new Error(data.error);
 
-        const facts = [
-            "Backend / Node.js",
-            "Hyderabad · Hybrid",
-            "₹13–15 LPA",
-            "Hybrid",
-            "Predictable hours",
-            "Avoid frequent late-night work"
-        ];
 
-        items.forEach((item, i) => item.textContent = facts[i]);
-        status.textContent = "● MEMORY SAVED";
-        copy.innerHTML = "<strong>Conversation analyzed.</strong> Long-term candidate details were extracted and stored in Hindsight.";
+        document.getElementById("storedMemory").textContent = data.memory;
+        status.textContent = "● MEMORY SAVED TO HINDSIGHT";
+        document.getElementById("candidateMemoryStatus").textContent = "● REMEMBERED IN HINDSIGHT";
+        copy.innerHTML = "<strong>Initial conversation analyzed.</strong> The following Groq extraction was retained in Hindsight.";
         extraction.classList.add("saved");
+        document.getElementById("timelineInitial").textContent = "Groq extracted the preferences shown above and retained them in Hindsight.";
         button.innerText = "Memory saved ✓";
 
         console.log("🧠 Memory saved:", data.memory);
+
+        const followUpResponse = await fetch("/api/follow-up", { method: "POST", headers: { "Content-Type": "application/json" } });
+        const followUpData = await followUpResponse.json();
+        if (!followUpData.success) throw new Error(followUpData.error);
+        document.getElementById("timelineFollowUp").textContent = "Hindsight recalled the earlier preferences below; Groq used them to draft this personalized follow-up:";
+        document.getElementById("followUpMemory").textContent = followUpData.memory;
+        document.getElementById("followUpQuestion").textContent = followUpData.followUp;
+        console.log("🧠 Follow-up memory recalled:", followUpData.memory);
+        console.log("🤖 Personalized follow-up:", followUpData.followUp);
 
     } catch (error) {
         console.error(error);
@@ -1128,6 +1123,8 @@ async function generateBrief() {
     const button = document.querySelector(".generate-btn");
     const result = document.getElementById("result");
     const generated = document.getElementById("generatedBrief");
+    const recalledMemory = document.getElementById("recalledMemory");
+    const recallStatus = document.getElementById("recallStatus");
 
     button.innerText = "Recalling candidate memory...";
     button.disabled = true;
@@ -1141,9 +1138,11 @@ async function generateBrief() {
         const data = await response.json();
         if (!data.success) throw new Error(data.error);
 
+        recalledMemory.textContent = data.memory;
         generated.textContent = data.brief;
-        generated.classList.add("show");
+        recallStatus.textContent = "● HINDSIGHT MEMORY RECALLED AND USED";
         result.classList.add("show");
+        document.getElementById("timelineToday").textContent = "Hindsight recalled the historical candidate context shown in the brief; Groq used it to generate today’s response.";
 
         result.scrollIntoView({ behavior: "smooth", block: "center" });
         button.innerText = "Memory recalled ✓";
@@ -1157,6 +1156,85 @@ async function generateBrief() {
         button.disabled = false;
     }
 }
+
+async function runComparison(callNumber) {
+    const requestId = ++comparisonRequestId;
+    const buttons = document.querySelectorAll(".call-selector button");
+    const status = document.getElementById("comparisonStatus");
+    buttons.forEach(button => button.classList.toggle("active", Number(button.dataset.call) === callNumber));
+    comparisonResults = null;
+    document.getElementById("comparisonAnswer").textContent = "Generating the same question with and without candidate memory…";
+    document.getElementById("memoriesRecalled").hidden = true;
+    document.getElementById("memoryChips").replaceChildren();
+    status.textContent = callNumber === 1 ? "No Hindsight recall on Call 1." : "Recalling candidate history from Hindsight…";
+
+    try {
+        const response = await fetch("/api/demo-comparison", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ callNumber })
+        });
+        const data = await response.json();
+        if (!data.success) throw new Error(data.error);
+        if (requestId !== comparisonRequestId) return;
+        comparisonResults = data;
+        renderComparisonTab();
+        status.textContent = data.memory ? `Call ${callNumber} · Hindsight recalled ${data.memoryFacts?.length || 0} memory items.` : "Call 1 · Hindsight recall skipped.";
+    } catch (error) {
+        if (requestId !== comparisonRequestId) return;
+        document.getElementById("comparisonAnswer").textContent = error.message;
+        status.textContent = "This comparison could not be generated. Try again.";
+    }
+}
+
+function selectComparisonTab(tab) {
+    activeComparisonTab = tab;
+    document.getElementById("tabWithoutMemory").setAttribute("aria-selected", String(tab === "off"));
+    document.getElementById("tabWithMemory").setAttribute("aria-selected", String(tab === "on"));
+    renderComparisonTab();
+}
+
+function renderComparisonTab() {
+    const answer = document.getElementById("comparisonAnswer");
+    const memories = document.getElementById("memoriesRecalled");
+    const chips = document.getElementById("memoryChips");
+    if (!comparisonResults) return;
+    answer.textContent = activeComparisonTab === "off" ? comparisonResults.withoutMemory : comparisonResults.withMemory;
+    chips.replaceChildren();
+    if (activeComparisonTab === "on" && comparisonResults.memoryFacts?.length) {
+        comparisonResults.memoryFacts.forEach(fact => {
+            const chip = document.createElement("span");
+            chip.className = "memory-chip";
+            chip.textContent = fact;
+            chips.append(chip);
+        });
+        memories.hidden = false;
+    } else {
+        memories.hidden = true;
+    }
+}
+
+function openMemoryDemo() {
+    const overlay = document.getElementById("memoryDemo");
+    overlay.classList.add("open");
+    overlay.setAttribute("aria-hidden", "false");
+    document.body.classList.add("demo-open");
+    runComparison(1);
+}
+
+function closeMemoryDemo() {
+    const overlay = document.getElementById("memoryDemo");
+    overlay.classList.remove("open");
+    overlay.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("demo-open");
+}
+
+document.getElementById("memoryDemo").addEventListener("click", event => {
+    if (event.target.id === "memoryDemo") closeMemoryDemo();
+});
+document.addEventListener("keydown", event => {
+    if (event.key === "Escape") closeMemoryDemo();
+});
 </script>
 
 </body>
